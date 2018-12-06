@@ -1,8 +1,11 @@
-#define LENGTH 256
-#define FHT_N 256
+//#include <FHT.h>
+//#include "FHT.h"
+
+#define LENGTH 512
+#define FREQ 38500
+#define FHT_N 512
 #define LOG_OUT 1
 
-#include "FHT.h"
 
 int rawData[LENGTH];
 uint8_t init_array[] = {255,0,0,0};
@@ -22,7 +25,7 @@ void float2bytes(float val, byte* bytes_array){
 void floatarr2bytearr(float input[], int len, byte output[]){
 
   for (int i=0; i < len; i++){
-      float2bytes(input[i], output[i*4]);
+      float2bytes(input[i], &output[i*4]);
   };
 
 };
@@ -65,15 +68,93 @@ void compute_autocorrelation(int* input, int len, double* output)
 { 
   for(int lag=0; lag < len; lag++)
     {
-      double mean;
-      mean = compute_mean(rawData, len);
-    
+      double mean = compute_mean(input, len);
+            
       // Loop to compute autovariance
       output[lag] = 0.0;
       for (int i=0; i<(len-lag); i++)
+      {
         output[lag] += (((double) input[i]/mean - 1) * ((double) input[i+lag]/mean - 1));
-        output[lag] = output[lag] / (len - lag);
+      }
+      output[lag] = output[lag] / (len - lag);
+      Serial.println(output[lag]);
     }
+    Serial.println("Fin autocorr");
+};
+
+
+int detect_frequency(
+                     int input[],
+                     double threshold_ratio
+                     )
+{
+    double corr[LENGTH];
+
+    bool stop_condition = false;
+    int max_idx = 0;
+    double mean = compute_mean(input, LENGTH);
+
+    // Iteración para distintos lags
+    for(int lag=0; lag < LENGTH; lag++)
+    {
+        // Computa correlación para el lag actual
+        for (int i=0; i<(LENGTH-lag); i++)
+            corr[lag] += ((input[i]/mean - 1) * (input[i+lag]/mean - 1));
+        corr[lag] = corr[lag] / (LENGTH - lag);
+
+        // Detecta si el lag anterior es un pico
+        if (lag > 1) {
+            if (corr[lag-1]-corr[lag-2] > 0 && corr[lag-1]-corr[lag] > 0)
+            {
+                // Se fija si el valor de pico es mayor a threshold_ratio * corr[0]
+                if (corr[lag-1] > threshold_ratio * corr[0]) {
+                    max_idx = lag-1;
+                    stop_condition = true;
+                }
+            }
+        }
+
+        if (stop_condition) break;
+    };
+
+    return max_idx;
+};
+
+
+int detect_frequency(
+                     int* input,
+                     double threshold_ratio,
+                     double* corr
+                     )
+{
+    bool stop_condition = false;
+    int max_idx = 0;
+    double mean = compute_mean(input, LENGTH);
+
+    // Iteración para distintos lags
+    for(int lag=0; lag < LENGTH; lag++)
+    {
+        // Computa correlación para el lag actual
+        for (int i=0; i<(LENGTH-lag); i++)
+            corr[lag] += (((double)input[i]/mean - 1) * ((double)input[i+lag]/mean - 1));
+        corr[lag] = corr[lag] / (LENGTH - lag);
+
+//        // Detecta si el lag anterior es un pico
+//        if (lag > 1) {
+//            if (corr[lag-1]-corr[lag-2] > 0 && corr[lag-1]-corr[lag] > 0)
+//            {
+//                // Se fija si el valor de pico es mayor a threshold_ratio * corr[0]
+//                if (corr[lag-1] > threshold_ratio * corr[0]) {
+//                    max_idx = lag-1;
+//                    stop_condition = true;
+//                }
+//            }
+//        }
+
+        if (stop_condition) break;
+    };
+
+    return max_idx;
 };
 
 
@@ -93,7 +174,6 @@ void loop() {
 
     double autocorr[LENGTH];
     int max_idx;
-    int freq_offset = 5;
     
     cli();  // UDRE interrupt slows this way down on arduino1.0
     for (int i = 0 ; i < LENGTH ; i++) { // save 256 samples
@@ -105,28 +185,32 @@ void loop() {
       k -= 0x0200; // form into a signed int
       k <<= 6; // form into a 16b signed int
       rawData[i] = k; // put real data into bins
-      fht_input[i] = k; // put real data into bins
+//      fht_input[i] = k; // put real data into bins
     }
 
-    fht_window(); // window the data for better frequency response
-    fht_reorder(); // reorder the data before doing the fht
-    fht_run(); // process the data in the fht
-    fht_mag_log(); // take the output of the fht
-    sei();
+//    fht_window(); // window the data for better frequency response
+//    fht_reorder(); // reorder the data before doing the fht
+//    fht_run(); // process the data in the fht
+//    fht_mag_log(); // take the output of the fht
 
-//    compute_autocorrelation(rawData, LENGTH, autocorr);
-    max_idx = find_max(fht_log_out, LENGTH/2, freq_offset);
+
+//    Serial.println("Autocorr START");
+    compute_autocorrelation(rawData, LENGTH, autocorr);
+//    Serial.println("Autocorr OK");
+//    max_idx = find_max(fht_log_out, LENGTH/2, freq_offset);
 
 //    Serial.println("Hola mundo");
 //    Serial.println(max_idx);
 
+//    int idx = detect_frequency(rawData, 0.95, autocorr);
 
-//    for (int i=0; i<LENGTH/2; i++){
-//      Serial.print(fht_log_out[i]);
-//      Serial.print(",");
-//    };
-//    Serial.println("");
-      Serial.println(max_idx);
+    for (int i=0; i<LENGTH; i++){
+      Serial.print(autocorr[i]);
+      Serial.print(",");
+    };
+    Serial.println("");
+//    Serial.println(FREQ/idx);
+//      Serial.println(max_idx);
 
 
 //    byte outbyte[LENGTH*sizeof(float)];
@@ -148,4 +232,6 @@ void loop() {
 //        for (i=0; i<(LENGTH - lag); i++)
 //          autocv[lag] += ((rawData[i] - mean) * (rawData[i+lag] - mean));
 //        autocv[lag] = (1.0 / (LENGTH - lag)) * autocv[lag];
+
+//    sei();
 //      }

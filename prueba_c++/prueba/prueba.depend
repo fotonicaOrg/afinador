@@ -1,0 +1,12 @@
+# depslib dependency file v1.0
+1544037666 source:c:\users\axel lacapmesure\google drive\facultad\2018_instrumentacionycontrol\afinador\prueba_c++\prueba\main.cpp
+	<iostream>
+	"header.h"
+
+1544020639 c:\users\axel lacapmesure\google drive\facultad\2018_instrumentacionycontrol\afinador\prueba_c++\prueba\header.h
+	<stdio.h>
+	<string.h>
+	<iostream>
+	<fstream>
+	<vector>
+
