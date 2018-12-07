@@ -14,15 +14,15 @@ BAUD_RATE = 115200
 
 data = np.zeros((2*LENGTH,))
 
-with serial.Serial('COM6', BAUD_RATE, timeout = 0.1) as ser:
+with serial.Serial('COM3', BAUD_RATE, timeout = 1) as ser:
     while True:
         print(ser.readline())
 #    print(ser.readline()) # Tiramos la primer linea que es basura
-    print(ser.readline()) # Tiramos la primer linea que es basura
-    arr = ser.readline().decode('ASCII')
-    arr = arr.split(',')[:-1]
-    arr = [float(x) for x in arr]
-    data = np.array(arr)/2**15
+#    print(ser.readline()) # Tiramos la primer linea que es basura
+#    arr = ser.readline().decode('ASCII')
+#    arr = arr.split(',')[:-1]
+#    arr = [float(x) for x in arr]
+#    data = np.array(arr)/2**15
     
 plt.plot(data)
 plt.xlabel('Muestra')

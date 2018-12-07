@@ -1,7 +1,7 @@
 //#include <FHT.h>
 //#include "FHT.h"
 
-#define LENGTH 512
+#define LENGTH 128
 #define FREQ 38500
 #define FHT_N 512
 #define LOG_OUT 1
@@ -64,81 +64,44 @@ double compute_mean(int* input, int len)
 };
 
 
-void compute_autocorrelation(int* input, int len, double* output)
-{ 
-  for(int lag=0; lag < len; lag++)
-    {
-      double mean = compute_mean(input, len);
-            
-      // Loop to compute autovariance
-      output[lag] = 0.0;
-      for (int i=0; i<(len-lag); i++)
-      {
-        output[lag] += (((double) input[i]/mean - 1) * ((double) input[i+lag]/mean - 1));
-      }
-      output[lag] = output[lag] / (len - lag);
-      Serial.println(output[lag]);
-    }
-    Serial.println("Fin autocorr");
-};
-
-
-int detect_frequency(
-                     int input[],
-                     double threshold_ratio
-                     )
-{
-    double corr[LENGTH];
-
-    bool stop_condition = false;
-    int max_idx = 0;
-    double mean = compute_mean(input, LENGTH);
-
-    // Iteración para distintos lags
-    for(int lag=0; lag < LENGTH; lag++)
-    {
-        // Computa correlación para el lag actual
-        for (int i=0; i<(LENGTH-lag); i++)
-            corr[lag] += ((input[i]/mean - 1) * (input[i+lag]/mean - 1));
-        corr[lag] = corr[lag] / (LENGTH - lag);
-
-        // Detecta si el lag anterior es un pico
-        if (lag > 1) {
-            if (corr[lag-1]-corr[lag-2] > 0 && corr[lag-1]-corr[lag] > 0)
-            {
-                // Se fija si el valor de pico es mayor a threshold_ratio * corr[0]
-                if (corr[lag-1] > threshold_ratio * corr[0]) {
-                    max_idx = lag-1;
-                    stop_condition = true;
-                }
-            }
-        }
-
-        if (stop_condition) break;
-    };
-
-    return max_idx;
-};
-
-
-int detect_frequency(
-                     int* input,
-                     double threshold_ratio,
-                     double* corr
-                     )
-{
-    bool stop_condition = false;
-    int max_idx = 0;
-    double mean = compute_mean(input, LENGTH);
-
-    // Iteración para distintos lags
-    for(int lag=0; lag < LENGTH; lag++)
-    {
-        // Computa correlación para el lag actual
-        for (int i=0; i<(LENGTH-lag); i++)
-            corr[lag] += (((double)input[i]/mean - 1) * ((double)input[i+lag]/mean - 1));
-        corr[lag] = corr[lag] / (LENGTH - lag);
-
+//void compute_autocorrelation(int* input, int len, double* output)
+//{ 
+//  for(int lag=0; lag < len; lag++)
+//    {
+//      double mean = compute_mean(input, len);
+//            
+//      // Loop to compute autovariance
+//      output[lag] = 0.0;
+//      for (int i=0; i<(len-lag); i++)
+//      {
+//        output[lag] += (((double) input[i]/mean - 1) * ((double) input[i+lag]/mean - 1));
+//      }
+//      output[lag] = output[lag] / (len - lag);
+//      //Serial.println(output[lag]);
+//    }
+//    //Serial.println("Fin autocorr");
+//};
+//
+//
+//int detect_frequency(
+//                     int input[],
+//                     double threshold_ratio
+//                     )
+//{
+//    double corr[LENGTH];
+//
+//    bool stop_condition = false;
+//    int max_idx = 0;
+//    double mean = compute_mean(input, LENGTH);
+//
+//    // Iteración para distintos lags
+//    for(int lag=0; lag < LENGTH; lag++)
+//    {
+//        // Computa correlación para el lag actual
+//        for (int i=0; i<(LENGTH-lag); i++)
+//            corr[lag] += ((input[i]/mean - 1) * (input[i+lag]/mean - 1));
+//        corr[lag] = corr[lag] / (LENGTH - lag);
+//
 //        // Detecta si el lag anterior es un pico
 //        if (lag > 1) {
 //            if (corr[lag-1]-corr[lag-2] > 0 && corr[lag-1]-corr[lag] > 0)
@@ -150,6 +113,44 @@ int detect_frequency(
 //                }
 //            }
 //        }
+//
+//        if (stop_condition) break;
+//    };
+//
+//    return max_idx;
+//};
+
+
+int detect_frequency(
+                     int* input,
+                     double threshold_ratio,
+                     double* corr,
+                     int len
+                     )
+{
+    bool stop_condition = false;
+    int max_idx = 0;
+    double mean = compute_mean(input, len);
+
+    // Iteración para distintos lags
+    for(int lag=0; lag < len; lag++)
+    {
+        // Computa correlación para el lag actual
+        for (int i=0; i<(len-lag); i++)
+            corr[lag] += (((double)input[i]/mean - 1) * ((double)input[i+lag]/mean - 1));
+        corr[lag] = corr[lag] / (len - lag);
+
+        // Detecta si el lag anterior es un pico
+        if (lag > 10) {
+            if (corr[lag-1]-corr[lag-2] > 0 && corr[lag-1]-corr[lag] > 0)
+            {
+                // Se fija si el valor de pico es mayor a threshold_ratio * corr[0]
+                if (corr[lag-1] > threshold_ratio * corr[0]) {
+                    max_idx = lag-1;
+                    stop_condition = true;
+                }
+            }
+        }
 
         if (stop_condition) break;
     };
@@ -195,21 +196,22 @@ void loop() {
 
 
 //    Serial.println("Autocorr START");
-    compute_autocorrelation(rawData, LENGTH, autocorr);
+//    compute_autocorrelation(rawData, LENGTH, autocorr);
 //    Serial.println("Autocorr OK");
 //    max_idx = find_max(fht_log_out, LENGTH/2, freq_offset);
 
 //    Serial.println("Hola mundo");
 //    Serial.println(max_idx);
 
-//    int idx = detect_frequency(rawData, 0.95, autocorr);
+    int idx = detect_frequency(rawData, 0.98, autocorr,LENGTH);
 
-    for (int i=0; i<LENGTH; i++){
-      Serial.print(autocorr[i]);
-      Serial.print(",");
-    };
+//    for (int i=0; i<LENGTH; i++){
+//      Serial.print(autocorr[i]);
+//      Serial.print(",");
+//    };
+//    Serial.println("");
+    Serial.print(FREQ/idx);
     Serial.println("");
-//    Serial.println(FREQ/idx);
 //      Serial.println(max_idx);
 
 

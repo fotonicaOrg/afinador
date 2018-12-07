@@ -14,7 +14,7 @@ BAUD_RATE = 115200
 
 data = np.zeros((2*LENGTH,))
 
-with serial.Serial('COM6', BAUD_RATE, timeout = 2) as ser:
+with serial.Serial('COM3', BAUD_RATE, timeout = 2) as ser:
     
     ser.readline() # Tiramos la primer linea que es basura
     arr = ser.readline().decode('ASCII')
