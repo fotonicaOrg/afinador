@@ -10,12 +10,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 LENGTH = 750
-BAUD_RATE = 115200
+BAUD_RATE = 9600 #115200
 
 data = np.zeros((2*LENGTH,))
 
-with serial.Serial('COM3', BAUD_RATE, timeout = 2) as ser:
-    while True:
+ser = serial.Serial('COM6', BAUD_RATE, timeout = 2, write_timeout = 2)
+print(ser.readall())
+ser.write('DIFF?\n')
+ser.close()
+
+#        ser.write(bytes('REF 1000', 'ASCII'))
+        ser.write(b'DIFF?\n')
         print(ser.readline())
 #    print(ser.readline()) # Tiramos la primer linea que es basura
 #    print(ser.readline()) # Tiramos la primer linea que es basura
