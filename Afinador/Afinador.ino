@@ -435,8 +435,6 @@ void loop() {
 
   
   // User loop:
-
-  unsigned long start_time = millis();
   
   noInterrupts();
   for (int i = 0 ; i < len ; i++) { // save 256 samples
@@ -458,8 +456,5 @@ void loop() {
     tuned = 0;
   else
     tuned = 1;
-
-  unsigned long end_time = millis();
-
 
 }
