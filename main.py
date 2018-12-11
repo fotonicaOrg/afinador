@@ -8,23 +8,39 @@ Created on Thu Dec  6 18:21:30 2018
 import serial
 import numpy as np
 from matplotlib import pyplot as plt
+import time
+import threading
 
-LENGTH = 750
-BAUD_RATE = 115200
+#LENGTH = 200
+BAUD_RATE = 115200 #115200
 
-data = np.zeros((2*LENGTH,))
+#data = np.zeros((2*LENGTH,))
 
-with serial.Serial('COM3', BAUD_RATE, timeout = 2) as ser:
-    while True:
-        print(ser.readline())
-#    print(ser.readline()) # Tiramos la primer linea que es basura
-#    print(ser.readline()) # Tiramos la primer linea que es basura
-#    arr = ser.readline().decode('ASCII')
-#    arr = arr.split(',')[:-1]
-#    arr = [float(x) for x in arr]
-#    data = np.array(arr)/2**15
-    
-plt.plot(data)
-plt.xlabel('Muestra')
-plt.ylabel('Tensión [u.a.]')
-plt.title('Calibración de frecuencia Arduino')
+# define a thread which takes input
+class InputThread(threading.Thread):
+    def run(self):
+        self.daemon = True
+        while True:
+            self.last_user_input = input('input something: ')
+            # do something based on the user input here
+            # alternatively, let main do something with
+            # self.last_user_input
+
+# main
+it = InputThread()
+it.start()
+while True:
+    # do something  
+    # do something with it.last_user_input if you feel like it
+
+
+
+ser = serial.Serial('COM6', BAUD_RATE, timeout = 2, write_timeout = 2)
+print(ser.readline())
+time.sleep(1)
+ser.write(b'REF 1000\n')
+time.sleep(1)
+ser.write(b'DIFF?\n')
+print(ser.readline())
+ser.close()
+
