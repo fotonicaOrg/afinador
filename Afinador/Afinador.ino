@@ -27,7 +27,7 @@
 bool tuned = false;
 int len = LENGTH;
 float reference = 440.0;
-float tolerance = 0.95;
+float tolerance = 20.0;
 float difference = 0.0;
 
 float compute_mean(
@@ -435,6 +435,8 @@ void loop() {
 
   
   // User loop:
+
+  unsigned long start_time = millis();
   
   noInterrupts();
   for (int i = 0 ; i < len ; i++) { // save 256 samples
@@ -449,13 +451,15 @@ void loop() {
   }
   interrupts();
 
-  max_idx = detect_frequency(raw_data, 0.98, autocorr, len);
+  max_idx = detect_frequency(raw_data, 0.8, autocorr, len);
   difference = FREQ/max_idx - reference;
   
-  if (abs(difference/reference) > tolerance)
-    tuned = true;
+  if (abs(difference) > tolerance)
+    tuned = 0;
   else
-    tuned = false;
+    tuned = 1;
+
+  unsigned long end_time = millis();
 
 
 }
