@@ -20,8 +20,8 @@
 
 // Definiciones propias (user):
 
-#define BAUD_RATE 9600
-#define LENGTH 256
+#define BAUD_RATE 115200
+#define LENGTH 200
 #define FREQ 38461
 
 bool tuned = false;
@@ -84,41 +84,6 @@ int detect_frequency(
     return max_idx;
 };
 
-
-//void user_setup() {
-//
-//  analogRead(A0);
-//  
-//  TIMSK0 = 0; // turn off timer0 for lower jitter
-//  ADCSRA = 0xe5; // set the adc to free running mode
-//  ADMUX = 0x40; // use adc0
-//  DIDR0 = 0x01; // turn off the digital input for adc0
-//}
-
-//void user_loop() {
-//  
-//  cli();  // UDRE interrupt slows this way down on arduino1.0
-//  for (int i = 0 ; i < len ; i++) { // save 256 samples
-//    while(!(ADCSRA & 0x10)); // wait for adc to be ready
-//    ADCSRA = 0xf5; // restart adc
-//    byte m = ADCL; // fetch adc data
-//    byte j = ADCH;
-//    int k = (j << 8) | m; // form into an int
-//    k -= 0x0200; // form into a signed int
-//    k <<= 6; // form into a 16b signed int
-//    raw_data[i] = k; // put real data into bins
-//  }
-//
-//  max_idx = detect_frequency(raw_data, 0.98, autocorr, len);
-//  difference = FREQ/max_idx - reference;
-//  
-//  if (abs(difference/reference) > tolerance)
-//    tuned = true;
-//  else
-//    tuned = false;
-//
-//  Serial.println(FREQ/max_idx);
-//}
 
 // COMMAND: TUN, FEAT: tuned
 int get_TUN() {
@@ -195,93 +160,6 @@ void error_i(int errno) {
   Serial.println(errno);
 }
 
-//void bridge_loop() {
-//  while (Serial.available() > 0) {
-//    sCmd.readSerial();
-//  }
-//}
-
-//void bridge_setup() {
-//  //// Setup callbacks for SerialCommand commands
-//
-//  // All commands might return
-//  //    ERROR: <error message>
-//
-//  // All set commands return 
-//  //    OK 
-//  // if the operation is successfull
-//
-//  // All parameters are ascii encoded strings
-//  sCmd.addCommand("INFO?", getInfo); 
-//
-//  sCmd.setDefaultHandler(unrecognized); 
-//
-//
-//  // tuned
-//  // <B> bool as string: True as "1", False as "0" 
-//
-//  // Getter:
-//  //   TUN? 
-//  // Returns: <B> 
-//  sCmd.addCommand("TUN?", wrapperGet_TUN); 
-//
-//  // Setter:
-//  //   TUN <B> 
-//  // Returns: OK or ERROR    
-//  sCmd.addCommand("TUN", wrapperSet_TUN); 
-//
-//  // reference
-//  // <F> float as string 
-//
-//  // Getter:
-//  //   REF? 
-//  // Returns: <F> 
-//  sCmd.addCommand("REF?", wrapperGet_REF); 
-//
-//  // Setter:
-//  //   REF <F> 
-//  // Returns: OK or ERROR    
-//  sCmd.addCommand("REF", wrapperSet_REF); 
-//
-//  // lenght
-//  // <I> int as string 
-//
-//  // Getter:
-//  //   LEN? 
-//  // Returns: <I> 
-//  sCmd.addCommand("LEN?", wrapperGet_LEN); 
-//
-//  // Setter:
-//  //   LEN <I> 
-//  // Returns: OK or ERROR    
-//  sCmd.addCommand("LEN", wrapperSet_LEN); 
-//
-//  // tolerance
-//  // <F> float as string 
-//
-//  // Getter:
-//  //   TOL? 
-//  // Returns: <F> 
-//  sCmd.addCommand("TOL?", wrapperGet_TOL); 
-//
-//  // Setter:
-//  //   TOL <F> 
-//  // Returns: OK or ERROR    
-//  sCmd.addCommand("TOL", wrapperSet_TOL); 
-//
-//  // difference
-//  // <F> float as string 
-//
-//  // Getter:
-//  //   DIFF? 
-//  // Returns: <F> 
-//  sCmd.addCommand("DIFF?", wrapperGet_DIFF); 
-//
-//  // Setter:
-//  //   DIFF <F> 
-//  // Returns: OK or ERROR    
-//  sCmd.addCommand("DIFF", wrapperSet_DIFF); 
-//}
 
 //// Code 
 
@@ -536,51 +414,48 @@ void loop() {
   int max_idx;
 
 
-  
   // Bridge loop:
   
-//  while (Serial.available() > 0) {
-//    Serial.println("Serial available.");
-//    sCmd.readSerial();
-//  }
+  while (Serial.available() > 0) {
+    sCmd.readSerial();
+  }
 
-    // Veo si puedo leer puerto serie:
-    Serial.println("Espera...");
-    Serial.flush();
-    
-    while (!Serial.available()) {}
-
-    while(Serial.available())
-    {
-     Serial.println(Serial.read());   // this will echo your entry - read the serial buffer, format is immaterial , just looking for response    
-    }
-    Serial.flush();
+//    // Veo si puedo leer puerto serie:
+//    Serial.println("Espera...");
+//    Serial.flush();
+//    
+//    while (!Serial.available()) {}
+//
+//    while(Serial.available())
+//    {
+//     Serial.println(Serial.read());   // this will echo your entry - read the serial buffer, format is immaterial , just looking for response    
+//    }
+//    Serial.flush();
 
 
   
   // User loop:
   
-//  cli();  // UDRE interrupt slows this way down on arduino1.0
-//  for (int i = 0 ; i < len ; i++) { // save 256 samples
-//    while(!(ADCSRA & 0x10)); // wait for adc to be ready
-//    ADCSRA = 0xf5; // restart adc
-//    byte m = ADCL; // fetch adc data
-//    byte j = ADCH;
-//    int k = (j << 8) | m; // form into an int
-//    k -= 0x0200; // form into a signed int
-//    k <<= 6; // form into a 16b signed int
-//    raw_data[i] = k; // put real data into bins
-//  }
-//
-//  max_idx = detect_frequency(raw_data, 0.98, autocorr, len);
-//  difference = FREQ/max_idx - reference;
-//  
-//  if (abs(difference/reference) > tolerance)
-//    tuned = true;
-//  else
-//    tuned = false;
+  noInterrupts();
+  for (int i = 0 ; i < len ; i++) { // save 256 samples
+    while(!(ADCSRA & 0x10)); // wait for adc to be ready
+    ADCSRA = 0xf5; // restart adc
+    byte m = ADCL; // fetch adc data
+    byte j = ADCH;
+    int k = (j << 8) | m; // form into an int
+    k -= 0x0200; // form into a signed int
+    k <<= 6; // form into a 16b signed int
+    raw_data[i] = k; // put real data into bins
+  }
+  interrupts();
+
+  max_idx = detect_frequency(raw_data, 0.98, autocorr, len);
+  difference = FREQ/max_idx - reference;
+  
+  if (abs(difference/reference) > tolerance)
+    tuned = true;
+  else
+    tuned = false;
 
 
-  Serial.println(difference);
-  Serial.flush();
 }
